@@ -2,6 +2,9 @@
 This project implements a 1D quantum mechanical path integral simulation using the lattice discretization method.
 The simulation visualizes how quantum particles can take all possible paths between two fixed points, with each path colored
 according to its quantum amplitude.
+## Documentation
+
+For detailed explanations of the physics behind the simulation, see the [Detailed documentation](docs/Info/physics_info.md).
 
 
 
