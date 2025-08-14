@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1D Quantum Path Integral Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .canvas-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        canvas {
+            width: 100%;
+            height: 600px;
+            border-radius: 8px;
+            background: #000;
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: right;
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .info-panel h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>1D Quantum Path Integral Simulation</h1>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="simulationCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="numPaths">Number of Paths</label>
+                <div class="slider-container">
+                    <input type="range" id="numPaths" min="100" max="5000" value="500" step="100">
+                    <span class="value-display" id="numPathsValue">500</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="timeSteps">Time Steps</label>
+                <div class="slider-container">
+                    <input type="range" id="timeSteps" min="10" max="200" value="30" step="5">
+                    <span class="value-display" id="timeStepsValue">30</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="hbar">Planck's Constant (ℏ)</label>
+                <div class="slider-container">
+                    <input type="range" id="hbar" min="0.1" max="2.0" value="1.0" step="0.1">
+                    <span class="value-display" id="hbarValue">1.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="mass">Mass</label>
+                <div class="slider-container">
+                    <input type="range" id="mass" min="0.1" max="3.0" value="1.0" step="0.1">
+                    <span class="value-display" id="massValue">1.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="dt">Time Step (Δt)</label>
+                <div class="slider-container">
+                    <input type="range" id="dt" min="0.01" max="0.5" value="0.1" step="0.01">
+                    <span class="value-display" id="dtValue">0.1</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="dx">Space Step (Δx)</label>
+                <div class="slider-container">
+                    <input type="range" id="dx" min="0.01" max="0.5" value="0.1" step="0.01">
+                    <span class="value-display" id="dxValue">0.1</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="startPos">Start Position</label>
+                <div class="slider-container">
+                    <input type="range" id="startPos" min="-5.0" max="0.0" value="-2.0" step="0.1">
+                    <span class="value-display" id="startPosValue">-2.0</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="endPos">End Position</label>
+                <div class="slider-container">
+                    <input type="range" id="endPos" min="0.0" max="5.0" value="2.0" step="0.1">
+                    <span class="value-display" id="endPosValue">2.0</span>
+                </div>
+            </div>
+
+            <button id="regenerateBtn">Regenerate Paths</button>
+            <button id="pauseBtn">Pause/Resume</button>
+
+            <div class="info-panel">
+                <h3>Simulation Info</h3>
+                <p>This simulation shows quantum mechanical paths between two points in a harmonic oscillator potential.
+                </p>
+                <p>Colors represent quantum amplitudes (phase and magnitude). The blue curve shows the harmonic
+                    potential.</p>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="fpsDisplay">60</div>
+                        <div class="stat-label">FPS</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="frameCount">0</div>
+                        <div class="stat-label">Frames</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="simulation.js"></script>
+</body>
+
+</html>
